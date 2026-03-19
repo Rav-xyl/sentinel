@@ -57,6 +57,28 @@ func (db *DB) GetTarget(host string) (string, error) {
 	return target, nil
 }
 
+// GetAllHosts retrieves a list of all registered hostnames in the database
+func (db *DB) GetAllHosts() ([]string, error) {
+	rows, err := db.Query("SELECT host FROM routes")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var hosts []string
+	for rows.Next() {
+		var host string
+		if err := rows.Scan(&host); err != nil {
+			return nil, err
+		}
+		hosts = append(hosts, host)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return hosts, nil
+}
+
 // SetRoute adds or updates a routing rule
 func (db *DB) SetRoute(host, target string) error {
 	_, err := db.Exec("INSERT INTO routes (host, target) VALUES (?, ?) ON CONFLICT(host) DO UPDATE SET target=excluded.target", host, target)

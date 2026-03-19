@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -30,11 +32,25 @@ func main() {
 	// Initialize the reverse proxy router with the database
 	router := proxy.NewRouter(db)
 
-	// Setup Let's Encrypt / ACME
+	// Setup Let's Encrypt / ACME with dynamic host policy
 	certManager := &autocert.Manager{
-		Prompt:     autocert.AcceptTOS,
-		HostPolicy: autocert.HostWhitelist("example.com", "api.example.com"), // Will be dynamic later
-		Cache:      autocert.DirCache("certs"),
+		Prompt: autocert.AcceptTOS,
+		HostPolicy: func(ctx context.Context, host string) error {
+			// Fetch all allowed hosts from the database
+			hosts, err := db.GetAllHosts()
+			if err != nil {
+				return fmt.Errorf("failed to retrieve hosts: %v", err)
+			}
+			
+			// Check if the requested host is in our database
+			for _, h := range hosts {
+				if h == host {
+					return nil // Host is allowed
+				}
+			}
+			return fmt.Errorf("acme/autocert: host not configured in sentinel: %s", host)
+		},
+		Cache: autocert.DirCache("certs"),
 	}
 
 	// Start HTTP to HTTPS redirect server with strict timeouts
