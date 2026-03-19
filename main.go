@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/Rav-xyl/sentinel/proxy"
 	"github.com/Rav-xyl/sentinel/store"
@@ -36,21 +37,31 @@ func main() {
 		Cache:      autocert.DirCache("certs"),
 	}
 
-	// Start HTTP to HTTPS redirect server
+	// Start HTTP to HTTPS redirect server with strict timeouts
 	go func() {
 		log.Println("Listening for HTTP (Port 80) for redirects and ACME challenges...")
-		if err := http.ListenAndServe(":80", certManager.HTTPHandler(nil)); err != nil {
+		httpServer := &http.Server{
+			Addr:         ":80",
+			Handler:      certManager.HTTPHandler(nil),
+			ReadTimeout:  5 * time.Second,
+			WriteTimeout: 5 * time.Second,
+			IdleTimeout:  120 * time.Second,
+		}
+		if err := httpServer.ListenAndServe(); err != nil {
 			log.Printf("HTTP Redirect Server Error: %v", err)
 		}
 	}()
 
-	// Start the main HTTPS server
+	// Start the main HTTPS server with aggressive timeouts
 	port := ":443"
 	log.Printf("Listening for Secure HTTPS traffic on %s\n", port)
 
 	server := &http.Server{
-		Addr:    port,
-		Handler: router,
+		Addr:         port,
+		Handler:      router,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 20 * time.Second,
+		IdleTimeout:  120 * time.Second,
 		TLSConfig: &tls.Config{
 			GetCertificate: certManager.GetCertificate,
 		},

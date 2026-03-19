@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Rav-xyl/sentinel/store"
 	"golang.org/x/time/rate"
@@ -90,6 +91,21 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	// 3. Dynamic Proxying
 	proxy := httputil.NewSingleHostReverseProxy(targetURL)
+
+	// Optimize the transport layer for aggressive connection pooling
+	proxy.Transport = &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout:   10 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).DialContext,
+		ForceAttemptHTTP2:     true,
+		MaxIdleConns:          100,
+		MaxIdleConnsPerHost:   100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
 	
 	proxy.Director = func(outReq *http.Request) {
 		outReq.URL.Scheme = targetURL.Scheme
