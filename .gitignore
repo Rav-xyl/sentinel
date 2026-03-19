@@ -4,15 +4,26 @@
 *.dll
 *.so
 *.dylib
-
-# Test binary, built with `go test -c`
 *.test
-
-# Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+sentinel
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Zero Trust Security Protocol - MANDATORY BLOCKS
+.env
+.env.*
+*.key
+*.pem
+*.cert
+*.crt
+*.db
+*.sqlite
+*.sqlite3
+*api*
+secrets/
+certs/
+
+# Dependency directories
+vendor/
 
 # OS-specific files
 .DS_Store

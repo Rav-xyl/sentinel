@@ -23,12 +23,6 @@ func main() {
 	}
 	defer db.Close()
 
-	// Hardcode a test route into the database for now
-	err = db.SetRoute("localhost", "http://127.0.0.1:8080")
-	if err != nil {
-		log.Fatalf("Failed to add test route to DB: %v", err)
-	}
-
 	// Initialize the reverse proxy router with the database
 	router := proxy.NewRouter(db)
 
