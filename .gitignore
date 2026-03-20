@@ -18,7 +18,8 @@ sentinel
 *.db
 *.sqlite
 *.sqlite3
-*api*
+*api_key*
+*apikey*
 secrets/
 certs/
 

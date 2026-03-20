@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Rav-xyl/sentinel/api"
 	"github.com/Rav-xyl/sentinel/proxy"
 	"github.com/Rav-xyl/sentinel/store"
 	"golang.org/x/crypto/acme/autocert"
@@ -22,6 +23,18 @@ func main() {
 		log.Fatalf("Database initialization failed: %v", err)
 	}
 	defer db.Close()
+
+	// Initialize and start the internal API Server
+	apiServer := api.NewServer(db)
+	apiMux := http.NewServeMux()
+	apiServer.RegisterRoutes(apiMux)
+
+	go func() {
+		log.Println("Listening for internal API traffic on :8081")
+		if err := http.ListenAndServe(":8081", apiMux); err != nil {
+			log.Printf("Internal API Server Error: %v", err)
+		}
+	}()
 
 	// Initialize the reverse proxy router with the database
 	router := proxy.NewRouter(db)
