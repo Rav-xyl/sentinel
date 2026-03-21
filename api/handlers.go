@@ -20,6 +20,7 @@ func NewServer(db *store.DB) *Server {
 // RegisterRoutes registers all API endpoints on a given ServeMux
 func (s *Server) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/routes", s.handleRoutes)
+	mux.HandleFunc("/api/webhooks/github", s.handleGitHubWebhook)
 }
 
 func (s *Server) handleRoutes(w http.ResponseWriter, r *http.Request) {
