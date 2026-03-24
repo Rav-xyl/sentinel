@@ -114,6 +114,12 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		outReq.Header.Set("X-Forwarded-Host", req.Host)
 		outReq.Header.Set("X-Forwarded-For", ip)
 		outReq.Header.Set("X-Origin-Host", targetURL.Host)
+
+		// Day 18: WebSocket and Edge Case Hardening
+		if strings.ToLower(req.Header.Get("Connection")) == "upgrade" && strings.ToLower(req.Header.Get("Upgrade")) == "websocket" {
+			outReq.Header.Set("Connection", "Upgrade")
+			outReq.Header.Set("Upgrade", "websocket")
+		}
 	}
 
 	proxy.ServeHTTP(w, req)
