@@ -57,8 +57,11 @@ func (s *Server) handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted)
 	w.Write([]byte(`{"status": "accepted", "message": "deployment queued"}`))
 
+	branch := strings.TrimPrefix(payload.Ref, "refs/heads/")
+	branch = strings.TrimPrefix(branch, "refs/tags/")
+
 	// Asynchronously process the deployment
-	go s.processDeployment(payload.Repository.Name, payload.Repository.CloneURL, payload.Ref)
+	go s.processDeployment(payload.Repository.Name, payload.Repository.CloneURL, branch)
 }
 
 func (s *Server) processDeployment(projectName, repoURL, branch string) {

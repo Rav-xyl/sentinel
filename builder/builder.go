@@ -25,7 +25,7 @@ func NewJob(repoURL, branch, projectID string) *Job {
 		RepoURL:   repoURL,
 		Branch:    branch,
 		ProjectID: projectID,
-		Workspace: filepath.Join("deployments", projectID),
+		Workspace: filepath.Join("deployments", projectID, "src"),
 	}
 }
 
